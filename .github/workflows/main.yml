@@ -1,6 +1,5 @@
 name: CI/CD for Main Branch
 
-
 on:
   push:
     branches:
@@ -38,6 +37,14 @@ jobs:
       run: |
         cd frontend
         npm test
+
+    - name: Install Docker and Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
 
     - name: Build Docker Images
       run: docker-compose build

@@ -5,7 +5,6 @@ on:
     branches:
       - dev
 
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -41,7 +40,12 @@ jobs:
 
     - name: Merge dev into main
       if: success()
-      uses: devops-infra/action-merge-branch@v2
-      with:
-        target_branch: main
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git fetch origin main
+        git checkout main
+        git merge dev
+        git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

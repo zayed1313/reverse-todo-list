@@ -1,10 +1,9 @@
-name: CI for Dev Branch
+name: CI/CD for Main Branch
 
 on:
   push:
     branches:
-      - dev
-
+      - main
 
 jobs:
   build-and-test:
@@ -39,9 +38,13 @@ jobs:
         cd frontend
         npm test
 
-    - name: Merge dev into main
-      if: success()
-      uses: devops-infra/action-merge-branch@v2
-      with:
-        target_branch: main
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and Push Docker Images
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        docker build -t $DOCKER_USERNAME/backend ./backend
+        docker build -t $DOCKER_USERNAME/frontend ./frontend
+        docker push $DOCKER_USERNAME/backend
+        docker push $DOCKER_USERNAME/frontend

@@ -44,4 +44,4 @@ jobs:
       uses: devops-infra/action-merge-branch@v2
       with:
         target_branch: main
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.Token }}

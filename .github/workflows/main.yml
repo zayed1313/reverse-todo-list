@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-test-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,13 +38,13 @@ jobs:
         cd frontend
         npm test
 
-    - name: Build Docker Images
-      run: docker-compose build
-
-    - name: Push Docker Images to DockerHub
+    - name: Build and Push Docker Images
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        docker-compose push
+        docker build -t $DOCKER_USERNAME/backend ./backend
+        docker build -t $DOCKER_USERNAME/frontend ./frontend
+        docker push $DOCKER_USERNAME/backend
+        docker push $DOCKER_USERNAME/frontend

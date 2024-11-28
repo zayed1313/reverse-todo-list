@@ -1,50 +1,96 @@
-name: CI for Dev Branch
+name: CI for Feature and Dev Branches
 
 on:
   push:
     branches:
-      - dev
+      - my-features  # Trigger quand vous poussez dans my-features
+      - dev          # Trigger quand dev est mis à jour
 
 jobs:
-  build-and-test:
+  feature-to-dev:
+    if: github.ref == 'refs/heads/my-features' # Exécuté seulement pour my-features
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
 
-    - name: Install dependencies for Backend
-      run: |
-        cd backend
-        npm install
+      - name: Install dependencies for Backend
+        run: |
+          cd backend
+          npm install
 
-    - name: Install dependencies for Frontend
-      run: |
-        cd frontend
-        npm install
+      - name: Install dependencies for Frontend
+        run: |
+          cd frontend
+          npm install
 
-    - name: Run Backend Unit Tests
-      run: |
-        cd backend
-        npm test
+      - name: Run Backend Unit Tests
+        run: |
+          cd backend
+          npm test
 
-    - name: Run Frontend Unit Tests
-      run: |
-        cd frontend
-        npm test
+      - name: Run Frontend Unit Tests
+        run: |
+          cd frontend
+          npm test
 
-    - name: Merge dev into main
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git fetch origin main
-        git checkout main
-        git merge dev --allow-unrelated-histories || echo "Merge conflicts detected. Please resolve manually."
-        git push origin main || echo "Push failed due to unresolved conflicts."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge my-features into dev
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin dev
+          git checkout dev
+          git merge my-features --allow-unrelated-histories -X theirs --no-edit
+          git merge my-features --no-edit
+          git push origin dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dev-to-main:
+    if: github.ref == 'refs/heads/dev' # Exécuté seulement pour dev
+    runs-on: ubuntu-latest
+    needs: feature-to-dev # Attendre que le job précédent se termine
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies for Backend
+        run: |
+          cd backend
+          npm install
+
+      - name: Install dependencies for Frontend
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run Backend Unit Tests
+        run: |
+          cd backend
+          npm test
+
+      - name: Run Frontend Unit Tests
+        run: |
+          cd frontend
+          npm test
+
+      - name: Merge dev into main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git merge dev --allow-unrelated-histories -X theirs --no-edit
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

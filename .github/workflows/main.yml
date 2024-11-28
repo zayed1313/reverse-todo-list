@@ -40,11 +40,22 @@ jobs:
         cd frontend
         npm test
         
-    - name: Run E2E Tests
+    - name: Install Selenium WebDriver and ChromeDriver
       run: |
-        cd e2e-tests
-        npm install
-        npm test
+          # Installer les dépendances nécessaires pour selenium-webdriver et chromedriver
+          npm install selenium-webdriver chromedriver
+  
+    - name: Start the Application
+      run: |
+          cd frontend
+          npm run start &
+          sleep 10  # Attendre que l'application se lance
+  
+    - name: Run E2E tests
+      run: |
+          cd e2e-tests
+          npm install
+          npx mocha test.js
 
     - name: Build and Push Docker Images
       env:

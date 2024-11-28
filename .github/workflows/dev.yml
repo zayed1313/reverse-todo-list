@@ -1,50 +1,57 @@
-name: CI/CD for Main Branch
+name: CI/CD for dev branch
 
 on:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      # 2. Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
 
-    - name: Install dependencies for Backend
-      run: |
-        cd backend
-        npm install
+      # 3. Install dependencies for Backend
+      - name: Install dependencies for Backend
+        run: |
+          cd backend
+          npm install
 
-    - name: Install dependencies for Frontend
-      run: |
-        cd frontend
-        npm install
+      # 4. Install dependencies for Frontend
+      - name: Install dependencies for Frontend
+        run: |
+          cd frontend
+          npm install
 
-    - name: Run Backend Unit Tests
-      run: |
-        cd backend
-        npm test
+      # 5. Run Backend Unit Tests
+      - name: Run Backend Unit Tests
+        run: |
+          cd backend
+          npm test
 
-    - name: Run Frontend Unit Tests
-      run: |
-        cd frontend
-        npm test
+      # 6. Run Frontend Unit Tests
+      - name: Run Frontend Unit Tests
+        run: |
+          cd frontend
+          npm test
 
-    - name: Build and Push Docker Images
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: |
-        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        docker build -t $DOCKER_USERNAME/backend ./backend
-        docker build -t $DOCKER_USERNAME/frontend ./frontend
-        docker push $DOCKER_USERNAME/backend
-        docker push $DOCKER_USERNAME/frontend
+      # 7. Merge dev into main
+      - name: Merge dev into main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git merge dev --no-ff -m "CI/CD: Merging dev into main"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
